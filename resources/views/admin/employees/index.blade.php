@@ -47,22 +47,48 @@
                         <table id="search-table">
                             <thead>
                                 <tr>
-                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Action</th>
-                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Photo</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Employee ID#</th>
+                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Photo</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Name</th>
-                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Birth Date</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Gender</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Department</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Payroll Position</th>
-                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">TIN</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Date Employed</th>
                                     <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Employment Status</th>
+                                    <th class="bg-gray-500 text-gray-100 dark:bg-gray-900 dark:text-gray-100 px-10 py-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($employees as $employee)
                                     <tr class="hover:bg-gray-200 dark:hover:bg-gray-700">
+                                        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                            {{ $employee->id }}-{{ str_pad($employee->employee_no, 3, '0', STR_PAD_LEFT) }}
+                                        </td>
+                                        <td>
+                                            @if ($employee->photo)
+                                                <!-- Display the uploaded profile photo -->
+                                                <img src="{{ asset('storage/' . $employee->photo) }}" alt="Profile Photo" class="w-16 aspect-square object-cover rounded-full">
+                                            @else
+                                                <!-- Display default profile photo if none is uploaded -->
+                                                <img src="{{ asset('img/default_avatar.png') }}" alt="Default Profile Photo" class="w-16 aspect-square object-cover rounded-full">
+                                            @endif
+                                        </td>
+                                        {{-- <td>{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</td> --}}
+                                        <td>
+                                            <!-- Display Employee Name -->
+                                            <div>{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</div>
+
+                                            <!-- Display Employee Email in a smaller font size and lighter color -->
+                                            <div class="text-sm text-gray-500">{{ $employee->personal_mail }}</div>
+                                        </td>
+                                        <td>{{ $employee->gender }}</td>
+                                        <td>{{ $employee->department }}</td>
+                                        <td>{{ $employee->payroll_position }}</td>
+                                        <td>{{ $employee->date_employed }}</td>
+                                        <!-- Conditional Employment Status -->
+                                        <td class="{{ strtoupper(trim($employee->employment_status)) === 'ACTIVE' ? 'text-green-500' : (strtoupper(trim($employee->employment_status)) === 'INACTIVE' ? 'text-red-500' : 'text-gray-900') }}">
+                                            {{ $employee->employment_status }}
+                                        </td>
                                         <td>
                                             <!-- Set unique IDs for the button and dropdown menu using employee id -->
                                             <button id="dropdownHoverButton{{ $employee->id }}" data-dropdown-toggle="dropdownHover{{ $employee->id }}" data-dropdown-trigger="hover" class="text-gray-800 bg-transparent border border-gray-300 hover:text-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-transparent dark:border-gray-600 dark:text-gray-300 dark:hover:text-gray-400 dark:focus:ring-gray-800" type="button">
@@ -81,7 +107,7 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a href="#!" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                        <a href="{{ route('employees.edit', $employee->id) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                                                             <i class="fa-solid fa-pen-to-square me-2"></i>Edit
                                                         </a>
                                                     </li>
@@ -99,34 +125,6 @@
                                                 </ul>
                                             </div>
                                         </td>
-
-                                        <td>
-                                            @if ($employee->photo)
-                                                <!-- Display the uploaded profile photo -->
-                                                <img src="{{ asset('storage/' . $employee->photo) }}" alt="Profile Photo" class="h-16 w-16 object-cover rounded-full">
-                                            @else
-                                                <!-- Display default profile photo if none is uploaded -->
-                                                <img src="{{ asset('img/default_avatar.png') }}" alt="Default Profile Photo" class="h-16 w-16 object-cover rounded-full">
-                                            @endif
-                                        </td>
-
-
-                                        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                            {{ $employee->id }}-{{ str_pad($employee->employee_no, 3, '0', STR_PAD_LEFT) }}
-                                        </td>
-                                        <td>{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</td>
-                                        <td>{{ $employee->birthdate }}</td>
-                                        <td>{{ $employee->gender }}</td>
-                                        <td>{{ $employee->department }}</td>
-                                        <td>{{ $employee->payroll_position }}</td>
-                                        <td>{{ $employee->tin }}</td>
-                                        <td>{{ $employee->date_employed }}</td>
-                                        <!-- Conditional Employment Status -->
-                                        <td class="{{ strtoupper(trim($employee->employment_status)) === 'ACTIVE' ? 'text-green-500' : (strtoupper(trim($employee->employment_status)) === 'INACTIVE' ? 'text-red-500' : 'text-gray-900') }}">
-                                            {{ $employee->employment_status }}
-                                        </td>
-
-
                                     </tr>
                                 @endforeach
                             </tbody>
