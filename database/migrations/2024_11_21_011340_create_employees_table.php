@@ -32,19 +32,18 @@ class CreateEmployeesTable extends Migration
             $table->string('philhealth')->nullable();
             $table->date('date_employed');
             $table->string('employment_status');
+            $table->string('photo')->nullable();  // Photo field
 
-            // Add a column for the photo
-            $table->string('photo')->nullable(); // Add this line
+            // Add columns for soft delete functionality
+            $table->boolean('active')->default(1);   // Employee is active by default
+            $table->boolean('exclude')->default(0);  // Employee is not excluded by default
 
             $table->timestamps();
         });
     }
-
 
     public function down()
     {
         Schema::dropIfExists('employees');
     }
 }
-
-

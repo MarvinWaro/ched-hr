@@ -29,6 +29,12 @@
             white-space: nowrap;
         }
 
+        .inactive {
+            background-color: #f8d7da; /* Light red background */
+            color: #721c24; /* Dark red text */
+        }
+
+
     </style>
 
     <div class="py-12">
@@ -60,7 +66,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($employees as $employee)
-                                    <tr class="hover:bg-gray-200 dark:hover:bg-gray-700">
+                                    <tr class="hover:bg-gray-200 dark:hover:bg-gray-700 {{ $employee->exclude ? 'bg-red-100 dark:bg-red-900' : '' }}">
                                         <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                             {{ $employee->id }}-{{ str_pad($employee->employee_no, 3, '0', STR_PAD_LEFT) }}
                                         </td>
@@ -73,12 +79,8 @@
                                                 <img src="{{ asset('img/default_avatar.png') }}" alt="Default Profile Photo" class="w-16 aspect-square object-cover rounded-full">
                                             @endif
                                         </td>
-                                        {{-- <td>{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</td> --}}
                                         <td>
-                                            <!-- Display Employee Name -->
                                             <div>{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</div>
-
-                                            <!-- Display Employee Email in a smaller font size and lighter color -->
                                             <div class="text-sm text-gray-500">{{ $employee->personal_mail }}</div>
                                         </td>
                                         <td>{{ $employee->gender }}</td>
@@ -86,19 +88,22 @@
                                         <td>{{ $employee->payroll_position }}</td>
                                         <td>{{ $employee->date_employed }}</td>
                                         <!-- Conditional Employment Status -->
-                                        <td class="{{ strtoupper(trim($employee->employment_status)) === 'ACTIVE' ? 'text-green-500' : (strtoupper(trim($employee->employment_status)) === 'INACTIVE' ? 'text-red-500' : 'text-gray-900') }}">
-                                            {{ $employee->employment_status }}
+                                        <td class="{{ $employee->active && !$employee->exclude ? 'text-green-500' : 'text-red-500' }}">
+                                            @if($employee->exclude)
+                                                Inactive
+                                            @elseif($employee->active)
+                                                Active
+                                            @else
+                                                Inactive
+                                            @endif
                                         </td>
                                         <td>
-                                            <!-- Set unique IDs for the button and dropdown menu using employee id -->
                                             <button id="dropdownHoverButton{{ $employee->id }}" data-dropdown-toggle="dropdownHover{{ $employee->id }}" data-dropdown-trigger="hover" class="text-gray-800 bg-transparent border border-gray-300 hover:text-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-transparent dark:border-gray-600 dark:text-gray-300 dark:hover:text-gray-400 dark:focus:ring-gray-800" type="button">
                                                 Action
                                                 <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                                                 </svg>
                                             </button>
-
-                                            <!-- Dropdown menu with unique ID -->
                                             <div id="dropdownHover{{ $employee->id }}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                                                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownHoverButton{{ $employee->id }}">
                                                     <li>
@@ -113,7 +118,6 @@
                                                     </li>
                                                     <hr class="w-[90%] mx-auto">
                                                     <li>
-                                                        <!-- Delete Form -->
                                                         <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" class="delete-form" onsubmit="return confirmDelete()">
                                                             @csrf
                                                             @method('DELETE')
@@ -129,6 +133,7 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+
                         </table>
                     </div>
 
@@ -138,7 +143,7 @@
         </div>
     </div>
 
-    
+
 
     <script>
         function confirmDelete() {

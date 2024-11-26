@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee; // Import the Employee model
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
     public function index()
     {
-        // Fetch all employees from the database
-        $employees = Employee::all();
+        // Fetch all employees from the database who are not excluded
+        $employees = Employee::where('exclude', 0)->get();
 
         // Pass the employees data to the view
         return view('admin.employees.index', compact('employees'));
@@ -20,7 +20,6 @@ class EmployeeController extends Controller
     {
         return view('admin.employees.create-employee');
     }
-
 
     public function store(Request $request)
     {
@@ -48,44 +47,80 @@ class EmployeeController extends Controller
             'philhealth' => 'nullable|string|max:100',
             'date_employed' => 'required|date|before_or_equal:today',
             'employment_status' => 'required|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo (2MB max size)
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo (10MB max size)
         ]);
 
-        // Handle the file upload if a photo is provided
+        // Check for an excluded employee to reuse
+        $employee = Employee::where('exclude', 1)->first();
+
+        // Handle file upload if a photo is provided
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photo = $request->file('photo');
-            $photoPath = $photo->store('profile_photos', 'public'); // Store in storage/app/public/profile_photos
+            $photoPath = $photo->store('profile_photos', 'public');
         }
 
-        // Create and store the employee record, including the photo path
-        Employee::create([
-            'employee_no' => $validatedData['employee_no'],
-            'first_name' => $validatedData['first_name'],
-            'middle_name' => $validatedData['middle_name'],
-            'last_name' => $validatedData['last_name'],
-            'birthdate' => $validatedData['birthdate'],
-            'gender' => $validatedData['gender'],
-            'marital_status' => $validatedData['marital_status'],
-            'address' => $validatedData['address'],
-            'department' => $validatedData['department'],
-            'payroll_position' => $validatedData['payroll_position'],
-            'designation' => $validatedData['designation'],
-            'place_of_assignment' => $validatedData['place_of_assignment'],
-            'office_mail' => $validatedData['office_mail'],
-            'personal_mail' => $validatedData['personal_mail'],
-            'mobile_number' => $validatedData['mobile_number'],
-            'tin' => $validatedData['tin'],
-            'gsis' => $validatedData['gsis'],
-            'crn' => $validatedData['crn'],
-            'sss' => $validatedData['sss'],
-            'philhealth' => $validatedData['philhealth'],
-            'date_employed' => $validatedData['date_employed'],
-            'employment_status' => $validatedData['employment_status'],
-            'photo' => $photoPath, // Save photo path
-        ]);
+        if ($employee) {
+            // Reuse the excluded employee record
+            $employee->update([
+                'employee_no' => $validatedData['employee_no'],
+                'first_name' => $validatedData['first_name'],
+                'middle_name' => $validatedData['middle_name'],
+                'last_name' => $validatedData['last_name'],
+                'birthdate' => $validatedData['birthdate'],
+                'gender' => $validatedData['gender'],
+                'marital_status' => $validatedData['marital_status'],
+                'address' => $validatedData['address'],
+                'department' => $validatedData['department'],
+                'payroll_position' => $validatedData['payroll_position'],
+                'designation' => $validatedData['designation'],
+                'place_of_assignment' => $validatedData['place_of_assignment'],
+                'office_mail' => $validatedData['office_mail'],
+                'personal_mail' => $validatedData['personal_mail'],
+                'mobile_number' => $validatedData['mobile_number'],
+                'tin' => $validatedData['tin'],
+                'gsis' => $validatedData['gsis'],
+                'crn' => $validatedData['crn'],
+                'sss' => $validatedData['sss'],
+                'philhealth' => $validatedData['philhealth'],
+                'date_employed' => $validatedData['date_employed'],
+                'employment_status' => $validatedData['employment_status'],
+                'photo' => $photoPath ?? null,  // Reset the photo to null if no new photo is uploaded
+                'exclude' => 0, // Reactivate employee
+                'active' => 1,  // Mark as active
+            ]);
 
-        // Redirect with success message
+        } else {
+            // Create a new employee if no excluded employee is found
+            Employee::create([
+                'employee_no' => $validatedData['employee_no'],
+                'first_name' => $validatedData['first_name'],
+                'middle_name' => $validatedData['middle_name'],
+                'last_name' => $validatedData['last_name'],
+                'birthdate' => $validatedData['birthdate'],
+                'gender' => $validatedData['gender'],
+                'marital_status' => $validatedData['marital_status'],
+                'address' => $validatedData['address'],
+                'department' => $validatedData['department'],
+                'payroll_position' => $validatedData['payroll_position'],
+                'designation' => $validatedData['designation'],
+                'place_of_assignment' => $validatedData['place_of_assignment'],
+                'office_mail' => $validatedData['office_mail'],
+                'personal_mail' => $validatedData['personal_mail'],
+                'mobile_number' => $validatedData['mobile_number'],
+                'tin' => $validatedData['tin'],
+                'gsis' => $validatedData['gsis'],
+                'crn' => $validatedData['crn'],
+                'sss' => $validatedData['sss'],
+                'philhealth' => $validatedData['philhealth'],
+                'date_employed' => $validatedData['date_employed'],
+                'employment_status' => $validatedData['employment_status'],
+                'photo' => $photoPath, // Store the new photo path if uploaded, or null
+                'active' => 1,  // Mark as active by default
+                'exclude' => 0, // Not excluded
+            ]);
+        }
+
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
     }
 
@@ -99,12 +134,11 @@ class EmployeeController extends Controller
         return view('admin.employees.edit-employee', compact('employee'));
     }
 
-
     public function update(Request $request, Employee $employee)
     {
-        // Validate the incoming request data
+        // Validate incoming request data with additional rules, including photo
         $validatedData = $request->validate([
-            'employee_no' => 'required|unique:employees,employee_no,' . $employee->id,
+            'employee_no' => 'required|unique:employees,employee_no,' . $employee->id, // Ensure unique employee number except for this employee
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -126,81 +160,43 @@ class EmployeeController extends Controller
             'philhealth' => 'nullable|string|max:100',
             'date_employed' => 'required|date|before_or_equal:today',
             'employment_status' => 'required|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo (10MB max size)
         ]);
 
-        // Handle the file upload if a new photo is provided
+        // Check if a new photo is uploaded
         if ($request->hasFile('photo')) {
-            // Delete the old photo if it exists
-            if ($employee->photo && \Storage::disk('public')->exists($employee->photo)) {
-                \Storage::disk('public')->delete($employee->photo);
+            // Handle file upload and store the new photo
+            $photo = $request->file('photo');
+            $photoPath = $photo->store('profile_photos', 'public');
+
+            // Delete the old photo if exists
+            if ($employee->photo && \Storage::exists('public/' . $employee->photo)) {
+                \Storage::delete('public/' . $employee->photo);
             }
-            // Store the new photo
-            $photoPath = $request->file('photo')->store('profile_photos', 'public');
-            $employee->photo = $photoPath; // Update photo path
+
+            // Update the photo path in the validated data
+            $validatedData['photo'] = $photoPath;
+        } else {
+            // If no new photo is uploaded, retain the old photo path
+            $validatedData['photo'] = $employee->photo;
         }
 
-        // Check if the user wants to remove the current profile picture
-        if ($request->has('remove_photo')) {
-            // Delete the current photo if it exists
-            if ($employee->photo && \Storage::disk('public')->exists($employee->photo)) {
-                \Storage::disk('public')->delete($employee->photo);
-            }
-            // Reset the photo field to null (or default it)
-            $employee->photo = null;
-        }
+        // Update the employee record with the validated data
+        $employee->update($validatedData);
 
-        // Update the employee record with validated data
-        $employee->update([
-            'employee_no' => $validatedData['employee_no'],
-            'first_name' => $validatedData['first_name'],
-            'middle_name' => $validatedData['middle_name'],
-            'last_name' => $validatedData['last_name'],
-            'birthdate' => $validatedData['birthdate'],
-            'gender' => $validatedData['gender'],
-            'marital_status' => $validatedData['marital_status'],
-            'address' => $validatedData['address'],
-            'department' => $validatedData['department'],
-            'payroll_position' => $validatedData['payroll_position'],
-            'designation' => $validatedData['designation'],
-            'place_of_assignment' => $validatedData['place_of_assignment'],
-            'office_mail' => $validatedData['office_mail'],
-            'personal_mail' => $validatedData['personal_mail'],
-            'mobile_number' => $validatedData['mobile_number'],
-            'tin' => $validatedData['tin'],
-            'gsis' => $validatedData['gsis'],
-            'crn' => $validatedData['crn'],
-            'sss' => $validatedData['sss'],
-            'philhealth' => $validatedData['philhealth'],
-            'date_employed' => $validatedData['date_employed'],
-            'employment_status' => $validatedData['employment_status'],
-            'photo' => $employee->photo, // Keep the updated or removed photo path
-        ]);
-
-        // Redirect with success message
+        // Redirect back with success message
         return redirect()->route('employees')->with('success', 'Employee updated successfully.');
     }
 
+
     public function destroy(Employee $employee)
     {
-        // Check if the employee has a profile picture and delete it from storage
-        if ($employee->photo && \Storage::disk('public')->exists($employee->photo)) {
-            \Storage::disk('public')->delete($employee->photo);
-        }
+        // Soft delete: mark the employee as excluded and inactive
+        $employee->update([
+            'exclude' => 1, // Mark as excluded
+            'active' => 0,  // Set as inactive
+        ]);
 
-        // Delete the employee record from the database
-        $employee->delete();
-
-        // Redirect back with a success message
-        return redirect()->route('employees')->with('success', 'Employee deleted successfully.');
+        return redirect()->route('employees')->with('success', 'Employee soft deleted successfully.');
     }
-
-
-
-
-
-
-
 }
-
-

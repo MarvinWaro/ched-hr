@@ -32,10 +32,8 @@ class Employee extends Model
         'philhealth',
         'date_employed',
         'employment_status',
-        'photo',  // Add photo field here
+        'photo',
+        'active',  // Add this line
+        'exclude', // Add this line
     ];
-
 }
-
-
-
