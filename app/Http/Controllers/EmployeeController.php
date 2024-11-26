@@ -181,6 +181,19 @@ class EmployeeController extends Controller
         return redirect()->route('employees')->with('success', 'Employee updated successfully.');
     }
 
+    public function destroy(Employee $employee)
+    {
+        // Check if the employee has a profile picture and delete it from storage
+        if ($employee->photo && \Storage::disk('public')->exists($employee->photo)) {
+            \Storage::disk('public')->delete($employee->photo);
+        }
+
+        // Delete the employee record from the database
+        $employee->delete();
+
+        // Redirect back with a success message
+        return redirect()->route('employees')->with('success', 'Employee deleted successfully.');
+    }
 
 
 

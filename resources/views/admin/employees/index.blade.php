@@ -114,11 +114,12 @@
                                                     <hr class="w-[90%] mx-auto">
                                                     <li>
                                                         <!-- Delete Form -->
-                                                        <form action="#!" method="POST" class="delete-form">
+                                                        <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" class="delete-form" onsubmit="return confirmDelete()">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="button" class="delete-button w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white flex items-center focus:outline-none">
-                                                                <i class="fa-solid fa-trash me-2 text-red-500"></i><span class="text-red-500">Delete</span>
+                                                            <button type="submit" class="delete-button w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white flex items-center focus:outline-none">
+                                                                <i class="fa-solid fa-trash me-2 text-red-500"></i>
+                                                                <span class="text-red-500">Delete</span>
                                                             </button>
                                                         </form>
                                                     </li>
@@ -136,6 +137,15 @@
             </div>
         </div>
     </div>
+
+    
+
+    <script>
+        function confirmDelete() {
+            return confirm('Are you sure you want to delete this employee? This action cannot be undone.');
+        }
+    </script>
+
 
 
 </x-app-layout>

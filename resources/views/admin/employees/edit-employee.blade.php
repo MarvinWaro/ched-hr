@@ -39,20 +39,18 @@
     <div class="py-12">
         <div class=" mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-5">
-
-
                     <div class="py-5 px-4 mx-auto max-w-7xl lg:py-10">
-
-
                         <form action="{{ route('employees.update', $employee->id) }}" method="POST" enctype="multipart/form-data">
-
-
                             @csrf
                             @method('PUT')
-
                             <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                                 {{-- PERSONAL INFORMATION --}}
-                                <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Personal Information</h2>
+                                <div class="sm:col-span-2 flex justify-between items-center mb-4">
+                                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Personal Information</h2>
+                                    <a href="{{ route('employees') }}" class="inline-block bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+                                        Back
+                                    </a>
+                                </div>
 
                                 <!-- Profile Picture Upload Field with Preview -->
                                 <div class="sm:col-span-2 flex items-center space-x-6">
@@ -176,16 +174,8 @@
                                     @enderror
                                 </div>
 
-
-
-
-
                                 {{-- CREDENTIALS --}}
                                 <h2 class="my-4 text-xl font-bold text-gray-900 dark:text-white">Credentials</h2>
-
-
-
-
 
                                 <!-- Flex container for Department, Payroll Position, and Designation -->
                                 <div class="sm:col-span-2 flex gap-4">
@@ -390,23 +380,9 @@
                             </div>
                         </form>
                     </div>
-
-
             </div>
         </div>
     </div>
-
-    <!-- Script for previewing the selected image -->
-    {{-- <script>
-        var loadFile = function(event) {
-            var output = document.getElementById('preview_img');
-            output.src = URL.createObjectURL(event.target.files[0]);
-            output.onload = function() {
-                URL.revokeObjectURL(output.src); // Free memory
-            }
-        };
-    </script> --}}
-
 
     <script>
         var loadFile = function(event) {

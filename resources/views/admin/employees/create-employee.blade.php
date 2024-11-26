@@ -47,7 +47,12 @@
                             @csrf
                             <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                                 {{-- PERSONAL INFORMATION --}}
-                                <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Personal Information</h2>
+                                <div class="sm:col-span-2 flex justify-between items-center mb-4">
+                                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Personal Information</h2>
+                                    <a href="{{ route('employees') }}" class="inline-block bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+                                        Back
+                                    </a>
+                                </div>
 
                                 <!-- Profile Picture Upload Field with Preview -->
                                 <div class="sm:col-span-2 flex items-center space-x-6">
