@@ -38,6 +38,9 @@ class CreateEmployeesTable extends Migration
             $table->boolean('active')->default(1);   // Employee is active by default
             $table->boolean('exclude')->default(0);  // Employee is not excluded by default
 
+            // Add password field
+            $table->string('password'); // Add password field
+
             $table->timestamps();
         });
     }
@@ -47,3 +50,4 @@ class CreateEmployeesTable extends Migration
         Schema::dropIfExists('employees');
     }
 }
+

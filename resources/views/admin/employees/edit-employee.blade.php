@@ -78,8 +78,7 @@
 
                                 <!-- Checkbox to remove the current profile photo -->
                                 <div class="sm:col-span-2 flex items-center">
-                                    <input type="checkbox" name="remove_photo" id="remove_photo" value="1"
-                                        class="mr-2" />
+                                    <input type="checkbox" name="remove_photo" id="remove_photo" value="1" class="mr-2" />
                                     <label for="remove_photo" class="text-sm text-gray-900 dark:text-white">Remove current profile picture</label>
                                 </div>
 
@@ -370,6 +369,27 @@
                                         @enderror
                                     </div>
                                 </div>
+
+                                <div class="sm:col-span-2 flex gap-4">
+                                    <!-- Password Field -->
+                                    <div class="w-full">
+                                        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+                                        <input type="password" name="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter new password">
+                                        @error('password')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Confirm Password Field -->
+                                    <div class="w-full">
+                                        <label for="password_confirmation" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm Password</label>
+                                        <input type="password" name="password_confirmation" id="password_confirmation" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Confirm new password">
+                                        @error('password_confirmation')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
 
                             </div>
                             <!-- Save Button at Bottom-Right -->

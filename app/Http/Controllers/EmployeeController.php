@@ -23,7 +23,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        // Validate incoming request data with additional rules, including photo
+        // Validate incoming request data including password and confirmation
         $validatedData = $request->validate([
             'employee_no' => 'required|unique:employees,employee_no',
             'first_name' => 'required|string|max:255',
@@ -48,10 +48,8 @@ class EmployeeController extends Controller
             'date_employed' => 'required|date|before_or_equal:today',
             'employment_status' => 'required|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo (10MB max size)
+            'password' => 'required|string|min:8|confirmed', // Password validation
         ]);
-
-        // Check for an excluded employee to reuse
-        $employee = Employee::where('exclude', 1)->first();
 
         // Handle file upload if a photo is provided
         $photoPath = null;
@@ -59,6 +57,9 @@ class EmployeeController extends Controller
             $photo = $request->file('photo');
             $photoPath = $photo->store('profile_photos', 'public');
         }
+
+        // Check for an excluded employee to reuse
+        $employee = Employee::where('exclude', 1)->first();
 
         if ($employee) {
             // Reuse the excluded employee record
@@ -88,8 +89,8 @@ class EmployeeController extends Controller
                 'photo' => $photoPath ?? null,  // Reset the photo to null if no new photo is uploaded
                 'exclude' => 0, // Reactivate employee
                 'active' => 1,  // Mark as active
+                'password' => bcrypt($validatedData['password']), // Encrypt the password
             ]);
-
         } else {
             // Create a new employee if no excluded employee is found
             Employee::create([
@@ -118,6 +119,7 @@ class EmployeeController extends Controller
                 'photo' => $photoPath, // Store the new photo path if uploaded, or null
                 'active' => 1,  // Mark as active by default
                 'exclude' => 0, // Not excluded
+                'password' => bcrypt($validatedData['password']), // Encrypt the password
             ]);
         }
 
@@ -125,18 +127,20 @@ class EmployeeController extends Controller
     }
 
 
+
     public function edit($id)
     {
         // Find the employee by ID
         $employee = Employee::findOrFail($id);
 
-        // Return the edit view with the employee data
+        // Return the edit view with the employee data, excluding the password
         return view('admin.employees.edit-employee', compact('employee'));
     }
 
+
     public function update(Request $request, Employee $employee)
     {
-        // Validate incoming request data with additional rules, including photo
+        // Validate incoming request data, including photo and optional password
         $validatedData = $request->validate([
             'employee_no' => 'required|unique:employees,employee_no,' . $employee->id, // Ensure unique employee number except for this employee
             'first_name' => 'required|string|max:255',
@@ -161,9 +165,10 @@ class EmployeeController extends Controller
             'date_employed' => 'required|date|before_or_equal:today',
             'employment_status' => 'required|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Validate photo (10MB max size)
+            'password' => 'nullable|string|min:8|confirmed', // Optional password validation with confirmation
         ]);
 
-        // Check if a new photo is uploaded
+        // Check if a new photo is uploaded or if the "Remove photo" checkbox is checked
         if ($request->hasFile('photo')) {
             // Handle file upload and store the new photo
             $photo = $request->file('photo');
@@ -176,9 +181,26 @@ class EmployeeController extends Controller
 
             // Update the photo path in the validated data
             $validatedData['photo'] = $photoPath;
+        } elseif ($request->has('remove_photo') && $request->remove_photo == '1') {
+            // If "Remove photo" checkbox is checked, delete the current photo and set it to null
+            if ($employee->photo && \Storage::exists('public/' . $employee->photo)) {
+                \Storage::delete('public/' . $employee->photo);
+            }
+
+            // Set photo field to null
+            $validatedData['photo'] = null;
         } else {
-            // If no new photo is uploaded, retain the old photo path
+            // If no new photo is uploaded and the "Remove photo" checkbox is not checked, retain the old photo path
             $validatedData['photo'] = $employee->photo;
+        }
+
+        // Update the password if it's provided (optional)
+        if ($request->has('password') && $request->password) {
+            // Hash the new password
+            $validatedData['password'] = bcrypt($request->password);
+        } else {
+            // If no new password is provided, retain the old password
+            unset($validatedData['password']); // Ensure the password is not overwritten if not provided
         }
 
         // Update the employee record with the validated data
@@ -187,6 +209,9 @@ class EmployeeController extends Controller
         // Redirect back with success message
         return redirect()->route('employees')->with('success', 'Employee updated successfully.');
     }
+
+
+
 
 
     public function destroy(Employee $employee)
