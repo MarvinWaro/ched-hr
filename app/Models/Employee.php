@@ -33,7 +33,9 @@ class Employee extends Model
         'date_employed',
         'employment_status',
         'photo',
-        'active',  // Add this line
-        'exclude', // Add this line
+        'active',
+        'exclude',
+        'password', // Add password field to fillable
     ];
+
 }
